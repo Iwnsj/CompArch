@@ -1,15 +1,24 @@
 /**
- * CompArch Quiz — Question Bank (50 Items)
+ * CompArch Quiz — Question Bank
  * Sources: Chap-1, Chap-2, Chap-3 Part 1, Chap-3 Part 2
  * Format: Definition-based — question describes, answer is the term.
- * Each question: { chapter, question, choices[], answer (index) }
+ *
+ * Two pools:
+ *   QUESTION_BANK        — Multiple-choice (4 choices)
+ *   IDENTIFICATION_BANK  — Identification / fill-in (typed answer)
+ *
+ * Each MC question:   { chapter, question, choices[], answer (index) }
+ * Each ID question:   { chapter, question, answer (string) }
  */
 
+// =====================================================================
+//  MULTIPLE CHOICE
+// =====================================================================
 const QUESTION_BANK = [
 
-    // =====================================================================
+    // =================================================================
     // CHAPTER 1 — Computer Structure & Function (12 Questions)
-    // =====================================================================
+    // =================================================================
     {
         chapter: 1,
         question: "This controls the operation of the computer and performs its data processing functions.",
@@ -88,9 +97,10 @@ const QUESTION_BANK = [
         answer: 1
     },
 
-    // =====================================================================
-    // CHAPTER 2 — History & Introduction to Computer Architecture (15 Questions)
-    // =====================================================================
+    // =================================================================
+    // CHAPTER 2 — Introduction to Computer Architecture (9 Questions)
+    //             (History / Generation questions excluded)
+    // =================================================================
     {
         chapter: 2,
         question: "This is a device which processes information.",
@@ -150,46 +160,10 @@ const QUESTION_BANK = [
         choices: ["Assembler", "Compiler", "Linker", "Loader"],
         answer: 1
     },
-    {
-        chapter: 2,
-        question: "The 0th Generation of computers (before 1900) was characterized by this technology.",
-        choices: ["Vacuum Tubes", "Transistors", "Mechanics", "Microprocessors"],
-        answer: 2
-    },
-    {
-        chapter: 2,
-        question: "The 1st Generation of computers (1900–1957) used this technology.",
-        choices: ["Integrated Circuits", "Vacuum Tubes", "Microprocessors", "Transistors"],
-        answer: 1
-    },
-    {
-        chapter: 2,
-        question: "The 2nd Generation of computers (1957–1965) was characterized by this technology.",
-        choices: ["Mechanics", "Vacuum Tubes", "Transistors", "Artificial Intelligence"],
-        answer: 2
-    },
-    {
-        chapter: 2,
-        question: "The 3rd Generation of computers (1966–1980) used this technology.",
-        choices: ["Vacuum Tubes", "Integrated Circuits", "Microprocessors", "Mechanics"],
-        answer: 1
-    },
-    {
-        chapter: 2,
-        question: "The 4th Generation of computers (1981–Present) is characterized by this technology.",
-        choices: ["Transistors", "Integrated Circuits", "Vacuum Tubes", "Microprocessors"],
-        answer: 3
-    },
-    {
-        chapter: 2,
-        question: "The 5th Generation of computers (Present–Future) is associated with this technology.",
-        choices: ["Mechanics", "Vacuum Tubes", "Artificial Intelligence", "Transistors"],
-        answer: 2
-    },
 
-    // =====================================================================
+    // =================================================================
     // CHAPTER 3 — Computer Memory & Storage (23 Questions)
-    // =====================================================================
+    // =================================================================
     {
         chapter: 3,
         question: "This type of storage stores data in magnetic form.",
@@ -327,5 +301,285 @@ const QUESTION_BANK = [
         question: "This stands for 'Secure Digital Card'.",
         choices: ["SSD Card", "SD Card", "SC Card", "SM Card"],
         answer: 1
+    }
+];
+
+
+// =====================================================================
+//  IDENTIFICATION (type-your-answer)
+//  answer field: the canonical answer string (matching is case-insensitive)
+//  accept: optional array of alternative accepted answers
+// =====================================================================
+const IDENTIFICATION_BANK = [
+
+    // =================================================================
+    // CHAPTER 1 — Computer Structure & Function
+    // =================================================================
+    {
+        chapter: 1,
+        question: "This controls the operation of the computer and performs its data processing functions.",
+        answer: "CPU",
+        accept: ["Central Processing Unit", "Processor"]
+    },
+    {
+        chapter: 1,
+        question: "This component stores data in a computer system.",
+        answer: "Main Memory",
+        accept: ["Memory", "RAM"]
+    },
+    {
+        chapter: 1,
+        question: "This moves data between the computer and its external environment.",
+        answer: "I/O Module",
+        accept: ["I/O", "IO Module", "Input/Output Module", "Input Output Module"]
+    },
+    {
+        chapter: 1,
+        question: "This is a mechanism that provides communication among CPU, main memory, and I/O.",
+        answer: "System Interconnection",
+        accept: ["System Bus", "Interconnection"]
+    },
+    {
+        chapter: 1,
+        question: "This structural component of a processor controls the operation of the CPU.",
+        answer: "Control Unit",
+        accept: ["CU"]
+    },
+    {
+        chapter: 1,
+        question: "This performs the computer's data processing functions such as arithmetic and logic operations.",
+        answer: "ALU",
+        accept: ["Arithmetic and Logic Unit", "Arithmetic Logic Unit"]
+    },
+    {
+        chapter: 1,
+        question: "This provides storage internal to the CPU.",
+        answer: "Registers",
+        accept: ["Register"]
+    },
+    {
+        chapter: 1,
+        question: "This provides a mechanism for communication among the control unit, ALU, and registers.",
+        answer: "CPU Interconnection",
+        accept: ["Internal Bus", "CPU Bus"]
+    },
+    {
+        chapter: 1,
+        question: "This field deals with hardware implementation details such as control signals and memory technology.",
+        answer: "Computer Organization",
+        accept: ["Organization"]
+    },
+    {
+        chapter: 1,
+        question: "This field deals with the programmer-visible interface such as the instruction set and data types.",
+        answer: "Computer Architecture",
+        accept: ["Architecture"]
+    },
+    {
+        chapter: 1,
+        question: "This refers to the operation of each individual component as part of the overall computer structure.",
+        answer: "Computer Function",
+        accept: ["Function"]
+    },
+    {
+        chapter: 1,
+        question: "This refers to the way in which components are physically arranged and interconnected.",
+        answer: "Computer Structure",
+        accept: ["Structure"]
+    },
+
+    // =================================================================
+    // CHAPTER 2 — Introduction to Computer Architecture
+    //             (History / Generation questions excluded)
+    // =================================================================
+    {
+        chapter: 2,
+        question: "This is a device which processes information.",
+        answer: "Computer",
+        accept: ["A Computer"]
+    },
+    {
+        chapter: 2,
+        question: "Chassis, cooling systems, and hard drive spindles are examples of this classification of computers by material.",
+        answer: "Mechanics",
+        accept: ["Mechanical"]
+    },
+    {
+        chapter: 2,
+        question: "DNA computing and bioinformatics fall under this classification of computers.",
+        answer: "Biology",
+        accept: ["Biological"]
+    },
+    {
+        chapter: 2,
+        question: "This is a computer designed to process requests and deliver data to other computers over a network.",
+        answer: "Server Computer",
+        accept: ["Server"]
+    },
+    {
+        chapter: 2,
+        question: "This is a specialized computer integrated into other devices, performing specific control functions.",
+        answer: "Embedded Computer",
+        accept: ["Embedded System", "Embedded"]
+    },
+    {
+        chapter: 2,
+        question: "This abstraction level refers to the physical arrangement of circuits and components on a chip.",
+        answer: "Layout",
+        accept: ["Physical Layout"]
+    },
+    {
+        chapter: 2,
+        question: "This abstraction level focuses on designing digital components like logic gates that execute instructions.",
+        answer: "Digital Design",
+        accept: ["Digital Logic Design", "Logic Design"]
+    },
+    {
+        chapter: 2,
+        question: "This defines the basic commands that a processor can execute.",
+        answer: "ISA",
+        accept: ["Instruction Set Architecture"]
+    },
+    {
+        chapter: 2,
+        question: "This translates high-level programming languages into machine code.",
+        answer: "Compiler",
+        accept: []
+    },
+
+    // =================================================================
+    // CHAPTER 3 — Computer Memory & Storage
+    // =================================================================
+    {
+        chapter: 3,
+        question: "This type of storage stores data in magnetic form and has high storage capacity.",
+        answer: "Magnetic Storage",
+        accept: ["Magnetic"]
+    },
+    {
+        chapter: 3,
+        question: "This type of storage stores data optically and uses a laser to read/write.",
+        answer: "Optical Storage",
+        accept: ["Optical"]
+    },
+    {
+        chapter: 3,
+        question: "A Hard Disk is an example of this type of storage.",
+        answer: "Magnetic Storage",
+        accept: ["Magnetic"]
+    },
+    {
+        chapter: 3,
+        question: "A CD-ROM is an example of this type of storage.",
+        answer: "Optical Storage",
+        accept: ["Optical"]
+    },
+    {
+        chapter: 3,
+        question: "SSD stands for this.",
+        answer: "Solid State Drive",
+        accept: ["SSD"]
+    },
+    {
+        chapter: 3,
+        question: "This is a type of memory that loses its data once power is cut off.",
+        answer: "Volatile Memory",
+        accept: ["Volatile"]
+    },
+    {
+        chapter: 3,
+        question: "This is a type of memory that retains data even without power.",
+        answer: "Non-Volatile Memory",
+        accept: ["Non Volatile Memory", "Nonvolatile Memory", "Non-Volatile"]
+    },
+    {
+        chapter: 3,
+        question: "This type of memory enables read and write of stored contents and is volatile.",
+        answer: "RAM",
+        accept: ["Random Access Memory"]
+    },
+    {
+        chapter: 3,
+        question: "This type of memory allows only read operations.",
+        answer: "ROM",
+        accept: ["Read Only Memory", "Read-Only Memory"]
+    },
+    {
+        chapter: 3,
+        question: "This technical indicator refers to the number of storage units included in a memory.",
+        answer: "Storage Capacity",
+        accept: ["Capacity"]
+    },
+    {
+        chapter: 3,
+        question: "This is defined as access time plus any additional recovery time before a second access can be made.",
+        answer: "Memory Cycle Time",
+        accept: ["Cycle Time"]
+    },
+    {
+        chapter: 3,
+        question: "This is the basic element of a semiconductor memory.",
+        answer: "Memory Cell",
+        accept: ["Cell"]
+    },
+    {
+        chapter: 3,
+        question: "RAM and ROM are the two main types of this kind of memory.",
+        answer: "Semiconductor Memory",
+        accept: ["Semiconductor"]
+    },
+    {
+        chapter: 3,
+        question: "DRAM stands for this.",
+        answer: "Dynamic Random-Access Memory",
+        accept: ["Dynamic Random Access Memory", "DRAM"]
+    },
+    {
+        chapter: 3,
+        question: "DDR SDRAM stands for this.",
+        answer: "Double Data Rate SDRAM",
+        accept: ["Double Data Rate Synchronous Dynamic Random-Access Memory", "DDR SDRAM"]
+    },
+    {
+        chapter: 3,
+        question: "System software like BIOS that must be immediately accessible is typically stored in this type of memory.",
+        answer: "ROM",
+        accept: ["Read Only Memory", "Read-Only Memory"]
+    },
+    {
+        chapter: 3,
+        question: "EPROM stands for this.",
+        answer: "Erasable Programmable Read-Only Memory",
+        accept: ["Erasable Programmable ROM", "EPROM"]
+    },
+    {
+        chapter: 3,
+        question: "EEPROM stands for this.",
+        answer: "Electrically Erasable Programmable Read-Only Memory",
+        accept: ["Electrically Erasable Programmable ROM", "EEPROM"]
+    },
+    {
+        chapter: 3,
+        question: "This type of memory combines the advantages of ROM and RAM — electronically erasable/programmable and retains data without power.",
+        answer: "Flash Memory",
+        accept: ["Flash"]
+    },
+    {
+        chapter: 3,
+        question: "This is a permanent physical defect in semiconductor memory where cells cannot reliably store data.",
+        answer: "Hard Failure",
+        accept: ["Hard Error", "Permanent Failure"]
+    },
+    {
+        chapter: 3,
+        question: "This is a random, non-destructive event that alters the contents of memory without damaging it.",
+        answer: "Soft Error",
+        accept: ["Soft Failure"]
+    },
+    {
+        chapter: 3,
+        question: "SD Card stands for this.",
+        answer: "Secure Digital Card",
+        accept: ["Secure Digital", "SD Card"]
     }
 ];

@@ -1,7 +1,8 @@
 /**
  * CompArch Quiz — Application Logic
- * Features: Randomized questions & choices, timer, score tracking,
- *           streak counting, chapter breakdown, review answers.
+ * Features: Multiple-choice & Identification modes, randomized questions,
+ *           timer, score tracking, streak counting, chapter breakdown,
+ *           review answers.
  */
 
 (function () {
@@ -15,6 +16,11 @@
             [a[i], a[j]] = [a[j], a[i]];
         }
         return a;
+    }
+
+    // ── Utility: normalize string for comparison ────────────────────────
+    function normalize(str) {
+        return str.trim().toLowerCase().replace(/[\s\-\/]+/g, " ");
     }
 
     // ── Background Particles ────────────────────────────────────────────
@@ -56,6 +62,7 @@
         questionCount: document.getElementById("questionCount"),
         qCounter: document.getElementById("qCounter"),
         chapterBadge: document.getElementById("chapterBadge"),
+        modeBadge: document.getElementById("modeBadge"),
         liveScore: document.getElementById("liveScore"),
         progressFill: document.getElementById("progressFill"),
         timerFill: document.getElementById("timerFill"),
@@ -63,6 +70,11 @@
         questionNumber: document.getElementById("questionNumber"),
         questionText: document.getElementById("questionText"),
         choicesGrid: document.getElementById("choicesGrid"),
+        // Identification
+        identificationArea: document.getElementById("identificationArea"),
+        idAnswerInput: document.getElementById("idAnswerInput"),
+        btnSubmitAnswer: document.getElementById("btnSubmitAnswer"),
+        // Feedback
         feedbackBar: document.getElementById("feedbackBar"),
         feedbackIcon: document.getElementById("feedbackIcon"),
         feedbackText: document.getElementById("feedbackText"),
@@ -79,6 +91,18 @@
         reviewList: document.getElementById("reviewList")
     };
 
+    // ── Mode Toggle ────────────────────────────────────────────────────
+    let quizMode = "mc"; // "mc" or "id"
+    const modeBtns = document.querySelectorAll(".mode-btn");
+
+    modeBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            modeBtns.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            quizMode = btn.dataset.mode;
+        });
+    });
+
     // ── State ───────────────────────────────────────────────────────────
     let questions = [];
     let currentIndex = 0;
@@ -88,10 +112,15 @@
     let answered = false;
     let timerInterval = null;
     let timerValue = 100;
-    const TIMER_SECONDS = 30;
+    const TIMER_SECONDS_MC = 30;
+    const TIMER_SECONDS_ID = 45; // more time for typing
     let questionStartTime = 0;
     let totalTime = 0;
     let history = []; // { question, userAnswer, correctAnswer, correct, chapter }
+
+    function getTimerSeconds() {
+        return quizMode === "id" ? TIMER_SECONDS_ID : TIMER_SECONDS_MC;
+    }
 
     // ── Screen Management ───────────────────────────────────────────────
     function showScreen(name) {
@@ -103,34 +132,46 @@
     // ── Prepare Questions (randomize order & choices) ───────────────────
     function prepareQuestions() {
         const count = parseInt(els.questionCount.value, 10);
-        let pool = shuffle(QUESTION_BANK);
-        if (count > 0) {
-            pool = pool.slice(0, count);
-        }
 
-        // Randomize each question's choices while tracking correct answer
-        questions = pool.map(q => {
-            const correctText = q.choices[q.answer];
-            const shuffledChoices = shuffle(q.choices);
-            const newAnswer = shuffledChoices.indexOf(correctText);
-            return {
+        if (quizMode === "mc") {
+            let pool = shuffle(QUESTION_BANK);
+            if (count > 0) pool = pool.slice(0, count);
+
+            // Randomize each question's choices while tracking correct answer
+            questions = pool.map(q => {
+                const correctText = q.choices[q.answer];
+                const shuffledChoices = shuffle(q.choices);
+                const newAnswer = shuffledChoices.indexOf(correctText);
+                return {
+                    chapter: q.chapter,
+                    question: q.question,
+                    choices: shuffledChoices,
+                    answer: newAnswer
+                };
+            });
+        } else {
+            // Identification mode
+            let pool = shuffle(IDENTIFICATION_BANK);
+            if (count > 0) pool = pool.slice(0, count);
+
+            questions = pool.map(q => ({
                 chapter: q.chapter,
                 question: q.question,
-                choices: shuffledChoices,
-                answer: newAnswer
-            };
-        });
+                answer: q.answer,
+                accept: q.accept || []
+            }));
+        }
     }
 
     // ── Render Question ─────────────────────────────────────────────────
     function renderQuestion() {
         const q = questions[currentIndex];
         const total = questions.length;
-        const letters = ["A", "B", "C", "D"];
 
         // Top bar
         els.qCounter.textContent = `${currentIndex + 1} / ${total}`;
         els.chapterBadge.textContent = `Chapter ${q.chapter}`;
+        els.modeBadge.textContent = quizMode === "mc" ? "Multiple Choice" : "Identification";
         els.liveScore.textContent = score;
         els.progressFill.style.width = `${((currentIndex) / total) * 100}%`;
 
@@ -142,20 +183,6 @@
         els.questionNumber.textContent = `Q${currentIndex + 1}`;
         els.questionText.textContent = q.question;
 
-        // Choices
-        els.choicesGrid.innerHTML = "";
-        q.choices.forEach((choice, idx) => {
-            const btn = document.createElement("button");
-            btn.className = "choice-btn";
-            btn.setAttribute("id", `choice-${idx}`);
-            btn.innerHTML = `
-                <span class="choice-letter">${letters[idx]}</span>
-                <span class="choice-text">${choice}</span>
-            `;
-            btn.addEventListener("click", () => handleAnswer(idx));
-            els.choicesGrid.appendChild(btn);
-        });
-
         // Hide feedback
         els.feedbackBar.classList.add("hidden");
         els.feedbackBar.classList.remove("correct-feedback", "wrong-feedback");
@@ -163,6 +190,38 @@
         // Disable next
         els.btnNext.disabled = true;
         answered = false;
+
+        if (quizMode === "mc") {
+            // ── Multiple Choice ──
+            els.choicesGrid.classList.remove("hidden");
+            els.identificationArea.classList.add("hidden");
+
+            const letters = ["A", "B", "C", "D"];
+            els.choicesGrid.innerHTML = "";
+            q.choices.forEach((choice, idx) => {
+                const btn = document.createElement("button");
+                btn.className = "choice-btn";
+                btn.setAttribute("id", `choice-${idx}`);
+                btn.innerHTML = `
+                    <span class="choice-letter">${letters[idx]}</span>
+                    <span class="choice-text">${choice}</span>
+                `;
+                btn.addEventListener("click", () => handleMCAnswer(idx));
+                els.choicesGrid.appendChild(btn);
+            });
+        } else {
+            // ── Identification ──
+            els.choicesGrid.classList.add("hidden");
+            els.identificationArea.classList.remove("hidden");
+            els.idAnswerInput.value = "";
+            els.idAnswerInput.disabled = false;
+            els.idAnswerInput.classList.remove("correct-input", "wrong-input");
+            els.btnSubmitAnswer.disabled = false;
+            els.btnSubmitAnswer.classList.remove("submitted");
+
+            // Focus input after a brief delay for animation
+            setTimeout(() => els.idAnswerInput.focus(), 150);
+        }
 
         // Start timer
         startTimer();
@@ -176,7 +235,8 @@
         els.timerFill.style.width = "100%";
         els.timerFill.classList.remove("warning", "danger");
 
-        const step = 100 / (TIMER_SECONDS * 10); // update every 100ms
+        const timerSec = getTimerSeconds();
+        const step = 100 / (timerSec * 10); // update every 100ms
         timerInterval = setInterval(() => {
             timerValue -= step;
             if (timerValue <= 0) {
@@ -201,8 +261,8 @@
         clearInterval(timerInterval);
     }
 
-    // ── Handle Answer ───────────────────────────────────────────────────
-    function handleAnswer(selectedIdx) {
+    // ── Handle MC Answer ────────────────────────────────────────────────
+    function handleMCAnswer(selectedIdx) {
         if (answered) return;
         answered = true;
         stopTimer();
@@ -236,17 +296,7 @@
         }
 
         // Feedback
-        els.feedbackBar.classList.remove("hidden", "correct-feedback", "wrong-feedback");
-        if (isCorrect) {
-            els.feedbackBar.classList.add("correct-feedback");
-            els.feedbackIcon.textContent = "✅";
-            const messages = ["Correct!", "Well done!", "Exactly right!", "Nailed it!", "Perfect!"];
-            els.feedbackText.textContent = messages[Math.floor(Math.random() * messages.length)];
-        } else {
-            els.feedbackBar.classList.add("wrong-feedback");
-            els.feedbackIcon.textContent = "❌";
-            els.feedbackText.textContent = `Incorrect. The correct answer is: ${q.choices[q.answer]}`;
-        }
+        showFeedback(isCorrect, q.choices[q.answer]);
 
         // Record history
         history.push({
@@ -266,32 +316,131 @@
         }
     }
 
+    // ── Handle Identification Answer ────────────────────────────────────
+    function handleIDAnswer() {
+        if (answered) return;
+        const userText = els.idAnswerInput.value.trim();
+        if (userText === "") return; // don't allow empty submission
+
+        answered = true;
+        stopTimer();
+
+        const elapsed = (Date.now() - questionStartTime) / 1000;
+        totalTime += elapsed;
+
+        const q = questions[currentIndex];
+        const normalizedUser = normalize(userText);
+        const normalizedAnswer = normalize(q.answer);
+
+        // Check against primary answer and all accepted alternatives
+        let isCorrect = normalizedUser === normalizedAnswer;
+        if (!isCorrect && q.accept) {
+            isCorrect = q.accept.some(alt => normalize(alt) === normalizedUser);
+        }
+
+        // Visual feedback on the input
+        els.idAnswerInput.disabled = true;
+        els.btnSubmitAnswer.disabled = true;
+        els.btnSubmitAnswer.classList.add("submitted");
+
+        if (isCorrect) {
+            els.idAnswerInput.classList.add("correct-input");
+        } else {
+            els.idAnswerInput.classList.add("wrong-input");
+        }
+
+        // Update score / streak
+        if (isCorrect) {
+            score++;
+            streak++;
+            if (streak > bestStreak) bestStreak = streak;
+            els.liveScore.textContent = score;
+        } else {
+            streak = 0;
+        }
+
+        // Feedback
+        showFeedback(isCorrect, q.answer);
+
+        // Record history
+        history.push({
+            question: q.question,
+            userAnswer: userText || "(No answer)",
+            correctAnswer: q.answer,
+            correct: isCorrect,
+            chapter: q.chapter
+        });
+
+        // Enable Next
+        els.btnNext.disabled = false;
+
+        if (currentIndex === questions.length - 1) {
+            els.btnNext.querySelector("span").textContent = "Finish";
+        }
+    }
+
+    // ── Shared Feedback ─────────────────────────────────────────────────
+    function showFeedback(isCorrect, correctAnswer) {
+        els.feedbackBar.classList.remove("hidden", "correct-feedback", "wrong-feedback");
+        if (isCorrect) {
+            els.feedbackBar.classList.add("correct-feedback");
+            els.feedbackIcon.textContent = "✅";
+            const messages = ["Correct!", "Well done!", "Exactly right!", "Nailed it!", "Perfect!"];
+            els.feedbackText.textContent = messages[Math.floor(Math.random() * messages.length)];
+        } else {
+            els.feedbackBar.classList.add("wrong-feedback");
+            els.feedbackIcon.textContent = "❌";
+            els.feedbackText.textContent = `Incorrect. The correct answer is: ${correctAnswer}`;
+        }
+    }
+
+    // ── Timeout ─────────────────────────────────────────────────────────
     function handleTimeout() {
         answered = true;
         stopTimer();
 
-        const elapsed = TIMER_SECONDS;
+        const elapsed = getTimerSeconds();
         totalTime += elapsed;
 
         const q = questions[currentIndex];
-        const choiceBtns = els.choicesGrid.querySelectorAll(".choice-btn");
-        choiceBtns.forEach(btn => btn.classList.add("disabled"));
-        choiceBtns[q.answer].classList.add("correct");
-
         streak = 0;
 
-        els.feedbackBar.classList.remove("hidden", "correct-feedback", "wrong-feedback");
-        els.feedbackBar.classList.add("wrong-feedback");
-        els.feedbackIcon.textContent = "⏰";
-        els.feedbackText.textContent = `Time's up! The correct answer is: ${q.choices[q.answer]}`;
+        if (quizMode === "mc") {
+            const choiceBtns = els.choicesGrid.querySelectorAll(".choice-btn");
+            choiceBtns.forEach(btn => btn.classList.add("disabled"));
+            choiceBtns[q.answer].classList.add("correct");
 
-        history.push({
-            question: q.question,
-            userAnswer: "(No answer — time ran out)",
-            correctAnswer: q.choices[q.answer],
-            correct: false,
-            chapter: q.chapter
-        });
+            els.feedbackBar.classList.remove("hidden", "correct-feedback", "wrong-feedback");
+            els.feedbackBar.classList.add("wrong-feedback");
+            els.feedbackIcon.textContent = "⏰";
+            els.feedbackText.textContent = `Time's up! The correct answer is: ${q.choices[q.answer]}`;
+
+            history.push({
+                question: q.question,
+                userAnswer: "(No answer — time ran out)",
+                correctAnswer: q.choices[q.answer],
+                correct: false,
+                chapter: q.chapter
+            });
+        } else {
+            els.idAnswerInput.disabled = true;
+            els.btnSubmitAnswer.disabled = true;
+            els.btnSubmitAnswer.classList.add("submitted");
+            els.idAnswerInput.classList.add("wrong-input");
+
+            els.feedbackBar.classList.remove("hidden", "correct-feedback", "wrong-feedback");
+            els.feedbackBar.classList.add("wrong-feedback");
+            els.feedbackIcon.textContent = "⏰";
+            els.feedbackText.textContent = `Time's up! The correct answer is: ${q.answer}`;
+
+            history.push({
+                question: q.question,
+                userAnswer: "(No answer — time ran out)",
+                correctAnswer: q.answer,
+                correct: false,
+                chapter: q.chapter
+            });
+        }
 
         els.btnNext.disabled = false;
         if (currentIndex === questions.length - 1) {
@@ -369,7 +518,7 @@
     function renderBreakdown() {
         els.breakdownBars.innerHTML = "";
         const chapters = [1, 2, 3];
-        const chapterNames = { 1: "Ch 1: Structure", 2: "Ch 2: History", 3: "Ch 3: Memory" };
+        const chapterNames = { 1: "Ch 1: Structure", 2: "Ch 2: Intro", 3: "Ch 3: Memory" };
 
         chapters.forEach(ch => {
             const items = history.filter(h => h.chapter === ch);
@@ -451,18 +600,34 @@
         els.btnToggleReview.querySelector("span").textContent = isHidden ? "Review Answers" : "Hide Review";
     });
 
+    // Submit answer for identification mode
+    els.btnSubmitAnswer.addEventListener("click", handleIDAnswer);
+
+    // Enter key submits in identification mode
+    els.idAnswerInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !answered) {
+            e.preventDefault();
+            handleIDAnswer();
+        }
+    });
+
     // Keyboard shortcuts
     document.addEventListener("keydown", (e) => {
         if (screens.quiz.classList.contains("active")) {
-            if (!answered) {
+            if (quizMode === "mc" && !answered) {
                 const keyMap = { "1": 0, "2": 1, "3": 2, "4": 3, "a": 0, "b": 1, "c": 2, "d": 3 };
                 const idx = keyMap[e.key.toLowerCase()];
                 if (idx !== undefined) {
-                    handleAnswer(idx);
+                    handleMCAnswer(idx);
                 }
-            } else if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                if (!els.btnNext.disabled) nextQuestion();
+            }
+            // Enter/Space for next (but not when typing in ID mode)
+            if (answered && (e.key === "Enter" || e.key === " ")) {
+                // Don't intercept if user is focused on the input
+                if (document.activeElement !== els.idAnswerInput) {
+                    e.preventDefault();
+                    if (!els.btnNext.disabled) nextQuestion();
+                }
             }
         } else if (screens.start.classList.contains("active")) {
             if (e.key === "Enter") {

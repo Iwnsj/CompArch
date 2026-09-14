@@ -55,6 +55,19 @@
 
             <div class="quiz-config">
                 <div class="config-item">
+                    <label>Quiz Mode</label>
+                    <div class="mode-toggle" id="modeToggle">
+                        <button class="mode-btn active" data-mode="mc" id="modeMultipleChoice">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><line x1="14" y1="6.5" x2="21" y2="6.5"/><line x1="14" y1="17.5" x2="21" y2="17.5"/></svg>
+                            <span>Multiple Choice</span>
+                        </button>
+                        <button class="mode-btn" data-mode="id" id="modeIdentification">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                            <span>Identification</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="config-item">
                     <label for="questionCount">Number of Questions</label>
                     <div class="select-wrapper">
                         <select id="questionCount">
@@ -85,6 +98,7 @@
                 <div class="progress-info">
                     <span class="q-counter" id="qCounter">1 / 30</span>
                     <span class="chapter-badge" id="chapterBadge">Chapter 1</span>
+                    <span class="mode-badge" id="modeBadge">Multiple Choice</span>
                 </div>
                 <div class="score-live">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
@@ -108,9 +122,21 @@
                 <h2 class="question-text" id="questionText">Loading question...</h2>
             </div>
 
-            <!-- Choices -->
+            <!-- Choices (Multiple Choice mode) -->
             <div class="choices-grid" id="choicesGrid">
                 <!-- Choices will be injected here -->
+            </div>
+
+            <!-- Identification Input (Identification mode) -->
+            <div class="identification-area hidden" id="identificationArea">
+                <div class="id-input-wrapper">
+                    <label for="idAnswerInput" class="id-label">Your Answer</label>
+                    <input type="text" id="idAnswerInput" class="id-input" placeholder="Type your answer here..." autocomplete="off" spellcheck="false" />
+                    <button class="btn-submit-answer" id="btnSubmitAnswer">
+                        <span>Submit</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
             </div>
 
             <!-- Feedback -->
